@@ -1,4 +1,4 @@
-package org.forgesilicon.ceasar;
+package org.forgesilicon.caesar;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;

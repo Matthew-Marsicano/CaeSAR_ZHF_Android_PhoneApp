@@ -1,4 +1,4 @@
-package org.forgesilicon.ceasar;
+package org.forgesilicon.caesar;
 
 import android.app.*;
 import android.content.*;
@@ -894,7 +894,7 @@ public final class MainActivity extends Activity {
                     main.postDelayed(() -> { if (session == generation && history > 0) { flush(true); requestAnalysis(); setSync("Imported " + history + " buffered readings"); } }, 6000);
                 });
             } catch (Exception error) { main.post(() -> { if (session == generation) { syncing = false; setSync("Import failed: " + error.getMessage()); } }); }
-        }, "ceasar-sync").start();
+        }, "caesar-sync").start();
     }
     private void disconnect() {
         generation++; syncing = false;

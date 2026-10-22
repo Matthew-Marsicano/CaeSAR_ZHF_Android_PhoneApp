@@ -1,4 +1,4 @@
-package org.forgesilicon.ceasar;
+package org.forgesilicon.caesar;
 
 import android.hardware.usb.*;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public final class UsbSerial implements AutoCloseable {
             } catch (Exception error) {
                 if (running) listener.onError("USB read failed. Reconnect the wearable.");
             }
-        }, "ceasar-usb-reader");
+        }, "caesar-usb-reader");
         reader.start();
     }
 

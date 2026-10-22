@@ -1,11 +1,11 @@
 plugins { id 'com.android.application' }
 
 android {
-    namespace 'org.forgesilicon.ceasar'
+    namespace 'org.forgesilicon.caesar'
     compileSdk 35
     buildToolsVersion "35.0.0"
     defaultConfig {
-        applicationId 'org.forgesilicon.ceasar'
+        applicationId 'org.forgesilicon.caesar'
         minSdk 26
         targetSdk 35
         versionCode 1

@@ -1,4 +1,4 @@
-package org.forgesilicon.ceasar;
+package org.forgesilicon.caesar;
 
 import java.time.*;
 import java.util.*;

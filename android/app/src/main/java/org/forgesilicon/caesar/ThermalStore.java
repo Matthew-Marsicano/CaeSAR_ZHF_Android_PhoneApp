@@ -1,4 +1,4 @@
-package org.forgesilicon.ceasar;
+package org.forgesilicon.caesar;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,7 +8,7 @@ import java.util.*;
 
 /** Local minute aggregates and logged period starts. Raw 1 Hz samples are not persisted. */
 public final class ThermalStore extends SQLiteOpenHelper {
-    public ThermalStore(Context context) { super(context, "ceasar-thermal.db", null, 1); }
+    public ThermalStore(Context context) { super(context, "caesar-thermal.db", null, 1); }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE minute (minute INTEGER PRIMARY KEY, core REAL NOT NULL, top REAL NOT NULL, top_n INTEGER NOT NULL, heater REAL NOT NULL, heater_n INTEGER NOT NULL, n INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE period (day TEXT PRIMARY KEY)");
