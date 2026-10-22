@@ -8,4 +8,10 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">#14110F</item>
     </style>
+    <style name="DateDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">#FF8C3A</item>
+    </style>
+    <style name="DateDialog.Light" parent="android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:colorAccent">#C4560F</item>
+    </style>
 </resources>

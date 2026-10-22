@@ -1,6 +1,6 @@
 package org.forgesilicon.ceasar;
 
-/** In-place radix-2 FFT, the same transform the CeaSAR pipelined FFT block runs on chip. */
+/** In-place radix-2 FFT, the same transform the CaeSAR pipelined FFT block runs on chip. */
 public final class Fft {
     private Fft() {}
 

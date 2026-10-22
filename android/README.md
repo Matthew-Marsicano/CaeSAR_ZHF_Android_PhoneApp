@@ -1,10 +1,10 @@
-# CeaSAR Health for Android
+# CaeSAR Health for Android
 
-Android 8.0+ app for the Forge Silicon Design CeaSAR wearable. It turns zero-heat-flux (ZHF) core temperature into actionable health data. No account, no Internet permission, no cloud backup. Same structure as the BEACON app: plain Java, no AndroidX, USB CDC ACM input, and a demo mode.
+Android 8.0+ app for the Forge Silicon Design CaeSAR wearable. It turns zero-heat-flux (ZHF) core temperature into actionable health data. No account, no Internet permission, no cloud backup. Same structure as the BEACON app: plain Java, no AndroidX, USB CDC ACM input, and a demo mode.
 
 ## Install
 
-Download [`CeaSAR-debug.apk`](apk/CeaSAR-debug.apk) and open it on your phone. Allow installs from your browser or file manager when Android asks. Debug-signed **v1.0** test build. SHA-256 is in [`SHA256SUMS`](apk/SHA256SUMS). USB host is optional, so the app installs on any phone and the demo runs without hardware.
+Download [`CaeSAR-debug.apk`](apk/CaeSAR-debug.apk) and open it on your phone. Allow installs from your browser or file manager when Android asks. Debug-signed **v1.0** test build. SHA-256 is in [`SHA256SUMS`](apk/SHA256SUMS). USB host is optional, so the app installs on any phone and the demo runs without hardware.
 
 ## Screens
 

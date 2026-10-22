@@ -81,6 +81,27 @@ public class VisualCheckTest {
         }
     }
 
+    @Test public void cycleInsightsToggleAndEmptyState() throws Exception {
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity a = controller.get(); settle(a);
+            click(a, "Insights");
+            assertTrue("Cycle card reachable without readings", hasText(a.getWindow().getDecorView(), "CYCLE INSIGHTS"));
+            click(a, "Turn on cycle insights");
+            assertTrue(hasText(a.getWindow().getDecorView(), "Log your period to start"));
+            capture(a, "cycle-empty-dark");
+            click(a, "Turn off");
+            assertTrue(hasText(a.getWindow().getDecorView(), "Turn on cycle insights"));
+            click(a, "Device"); click(a, "Try demo"); click(a, "Insights");
+            assertTrue(hasText(a.getWindow().getDecorView(), "Follicular phase"));
+            click(a, "Turn off");
+            assertTrue("Demo toggle works", hasText(a.getWindow().getDecorView(), "Turn on cycle insights"));
+            assertFalse("Illness watch no longer phase-matched", hasText(a.getWindow().getDecorView(), "follicular-phase nights"));
+            click(a, "Turn on cycle insights");
+            assertTrue(hasText(a.getWindow().getDecorView(), "Follicular phase"));
+            capture(a, "cycle-demo-dark");
+        }
+    }
+
     @Test public void renderDemoScreensInBothThemes() throws Exception {
         try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity a = controller.get(); settle(a);

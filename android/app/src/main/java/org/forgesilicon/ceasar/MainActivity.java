@@ -27,7 +27,7 @@ public final class MainActivity extends Activity {
     private List<LocalDate> realStarts = new ArrayList<>();
     private int page, periodOffset, nightOffset, analysisRequest, generation;
     private Trend.Period period = Trend.Period.DAY;
-    private boolean dark = true, fahrenheit, cycleOn, devMode, demo, heaterOverlay, destroyed, receiverRegistered, syncing, syncSent, dirty;
+    private boolean dark = true, fahrenheit, cycleOn, demoCycle = true, devMode, demo, heaterOverlay, destroyed, receiverRegistered, syncing, syncSent, dirty;
     private double rOut = DemoData.R_OUT;
     private ScrollView scroll;
     private TextView heroValue, heroCaption, liveCore, liveTop, liveHeater, liveLock, status, syncStatus, debugText, rateText;
@@ -159,6 +159,15 @@ public final class MainActivity extends Activity {
     private AlertDialog.Builder dialog(String title) {
         return new AlertDialog.Builder(new ContextThemeWrapper(this, dark ? android.R.style.Theme_Material_Dialog_Alert : android.R.style.Theme_Material_Light_Dialog_Alert)).setTitle(title);
     }
+    private void about(String body) {
+        LinearLayout v = column(); v.setPadding(dp(24), dp(12), dp(24), 0);
+        ImageView logo = new ImageView(this); logo.setImageResource(dark ? R.drawable.caesar_logo_dark : R.drawable.caesar_logo_light); logo.setAdjustViewBounds(true);
+        logo.setContentDescription("CaeSAR, heat to health insights"); logo.setBackground(shape(dark ? Color.BLACK : Color.rgb(242, 235, 217), 16)); logo.setClipToOutline(true);
+        v.addView(logo, new LinearLayout.LayoutParams(-1, -2));
+        TextView t = label(body, 14, TEXT); t.setPadding(0, dp(14), 0, 0); v.addView(t);
+        ScrollView sv = new ScrollView(this); sv.addView(v);
+        dialog("About CaeSAR").setView(sv).setPositiveButton("Got it", null).show();
+    }
     private void info(String title, String body) { dialog(title).setMessage(body).setPositiveButton("Got it", null).show(); }
 
     // ---------- formatting ----------
@@ -202,11 +211,12 @@ public final class MainActivity extends Activity {
         LinearLayout root = column(); root.setPadding(dp(20), dp(12), dp(20), dp(28)); scroll.addView(root);
         shell.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         LinearLayout toolbar = new LinearLayout(this); toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView mark = new ImageView(this); mark.setImageResource(R.drawable.forge_mark); mark.setContentDescription("Forge Silicon Design");
-        mark.setScaleType(ImageView.ScaleType.FIT_CENTER); toolbar.addView(mark, new LinearLayout.LayoutParams(dp(52), dp(40)));
+        ImageView mark = new ImageView(this); mark.setImageResource(dark ? R.drawable.caesar_emblem_dark : R.drawable.caesar_emblem_light); mark.setContentDescription("CaeSAR emblem");
+        mark.setScaleType(ImageView.ScaleType.CENTER_CROP); mark.setBackground(shape(Color.BLACK, 14)); mark.setClipToOutline(true);
+        toolbar.addView(mark, new LinearLayout.LayoutParams(dp(46), dp(46)));
         LinearLayout brand = column(); brand.setPadding(dp(10), 0, 0, 0);
-        TextView name = heading("CeaSAR", 22); name.setPadding(0, 0, 0, 0); brand.addView(name);
-        TextView org = label("FORGE SILICON DESIGN", 9, MUTED); org.setLetterSpacing(.14f); org.setPadding(0, 0, 0, 0); brand.addView(org);
+        TextView name = heading("CaeSAR", 22); name.setPadding(0, 0, 0, 0); brand.addView(name);
+        TextView org = label("HEAT TO HEALTH INSIGHTS", 9, MUTED); org.setLetterSpacing(.14f); org.setPadding(0, 0, 0, 0); brand.addView(org);
         toolbar.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
         ImageButton settings = iconButton(R.drawable.ic_settings, "Settings"); settings.setOnClickListener(v -> showSettings());
         toolbar.addView(settings, new LinearLayout.LayoutParams(dp(48), dp(48))); root.addView(toolbar);
@@ -220,7 +230,7 @@ public final class MainActivity extends Activity {
         boolean ready = analysis != null && !analysis.empty();
         if (page == 4) buildDevice(root);
         else if (analysis == null) { LinearLayout c = card(root); c.addView(heading("Reading your history…", 18)); c.addView(label("Crunching nights, rhythms, and heat episodes.", 13, MUTED)); }
-        else if (!ready) buildEmpty(root);
+        else if (!ready) { buildEmpty(root); if (page == 3) cycleCard(root, analysis); }
         else if (page == 0) buildToday(root);
         else if (page == 1) buildTrends(root);
         else if (page == 2) buildSleep(root);
@@ -243,13 +253,27 @@ public final class MainActivity extends Activity {
         render();
     }
 
+    /** The full CaeSAR logo on its own background so the artwork's edges never show. */
+    private void logoCard(LinearLayout root) {
+        LinearLayout c = card(root); c.setBackground(shape(dark ? Color.BLACK : Color.rgb(242, 235, 217), 24)); c.setPadding(dp(28), dp(20), dp(28), dp(16));
+        c.setGravity(Gravity.CENTER_HORIZONTAL);
+        ImageView logo = new ImageView(this); logo.setImageResource(dark ? R.drawable.caesar_logo_dark : R.drawable.caesar_logo_light);
+        logo.setAdjustViewBounds(true); logo.setContentDescription("CaeSAR, heat to health insights");
+        c.addView(logo, new LinearLayout.LayoutParams(dp(250), -2));
+        LinearLayout by = new LinearLayout(this); by.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView forge = new ImageView(this); forge.setImageResource(R.drawable.forge_mark); forge.setContentDescription("Forge Silicon Design");
+        forge.setScaleType(ImageView.ScaleType.FIT_CENTER); by.addView(forge, new LinearLayout.LayoutParams(dp(30), dp(22)));
+        TextView t = label("A FORGE SILICON DESIGN PROJECT", 10, dark ? Color.rgb(200, 168, 104) : Color.rgb(140, 105, 45)); t.setLetterSpacing(.12f); t.setPadding(dp(8), 0, 0, 0); by.addView(t);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-2, -2); bp.topMargin = dp(10); c.addView(by, bp);
+    }
     private void buildEmpty(LinearLayout root) {
+        logoCard(root);
         LinearLayout c = card(root); c.setBackground(shape(p.tint, 24));
         c.addView(eyebrow("CORE TEMPERATURE", p.accent)); c.addView(heading("No readings yet", 30));
-        c.addView(label("Wear CeaSAR on your torso, connect it over USB, and leave it on overnight. Insights build from your own nights: sleep after one, illness watch after seven, body clock after three days.", 14, MUTED));
+        c.addView(label("Wear CaeSAR on your torso, connect it over USB, and leave it on overnight. Insights build from your own nights: sleep after one, illness watch after seven, body clock after three days.", 14, MUTED));
         Button device = action("Connect wearable", true, R.drawable.ic_device); device.setOnClickListener(v -> { page = 4; buildUi(); }); fullAction(c, device);
         Button d = action("Try the demo", false, R.drawable.ic_spark); d.setOnClickListener(v -> toggleDemo()); fullAction(c, d);
-        LinearLayout how = card(root); how.addView(heading("How CeaSAR reads core temperature", 18));
+        LinearLayout how = card(root); how.addView(heading("How CaeSAR reads core temperature", 18));
         how.addView(label(zhfExplainer(), 13, MUTED));
     }
     private String zhfExplainer() {
@@ -274,7 +298,7 @@ public final class MainActivity extends Activity {
 
         Night n = a.lastNight();
         LinearLayout sleep = card(root); sleep.addView(eyebrow("LAST NIGHT", p.sleep));
-        if (n == null) sleep.addView(label("Wear CeaSAR overnight to see your sleep window and temperature drop.", 14, MUTED));
+        if (n == null) sleep.addView(label("Wear CaeSAR overnight to see your sleep window and temperature drop.", 14, MUTED));
         else {
             sleep.addView(heading(duration(n.hours()) + " in bed", 26));
             sleep.addView(label(clock(n.onset) + " – " + clock(n.wake) + " · " + (n.fromHeater ? "from heater power" : "from core temperature"), 13, MUTED));
@@ -330,7 +354,7 @@ public final class MainActivity extends Activity {
             case ELEVATED: body = String.format(Locale.getDefault(), "Your last %d nights ran %s above your baseline. A rise like this often shows up a day or two before symptoms. Prioritize sleep and fluids, ease off hard training, and consider testing if you feel unwell.", w.elevatedNights, delta(w.lastDelta)) + compare; break;
             case WATCH: body = "Last night ran " + delta(w.lastDelta) + " above your baseline. One warm night can come from alcohol, a late workout, a late meal, or a warm room. Two in a row is a stronger signal." + compare; break;
             case NORMAL: body = "Last night ran " + delta(w.lastDelta) + " vs your baseline of " + w.baselineNights + " nights." + compare; break;
-            default: body = "Wear CeaSAR overnight for 7 or more nights. Each night is then compared with your own recent nights.";
+            default: body = "Wear CaeSAR overnight for 7 or more nights. Each night is then compared with your own recent nights.";
         }
         c.addView(label(body, 14, full ? TEXT : MUTED));
         int count = full ? 30 : 14, nn = a.nights.size(), from = Math.max(0, nn - count);
@@ -415,7 +439,7 @@ public final class MainActivity extends Activity {
         Analysis a = analysis;
         List<Night> valid = new ArrayList<>();
         for (Night n : a.nights) if (n.valid()) valid.add(n);
-        if (valid.isEmpty()) { LinearLayout c = card(root); c.addView(heading("No nights yet", 20)); c.addView(label("Wear CeaSAR overnight. Your first night appears the next morning.", 14, MUTED)); return; }
+        if (valid.isEmpty()) { LinearLayout c = card(root); c.addView(heading("No nights yet", 20)); c.addView(label("Wear CaeSAR overnight. Your first night appears the next morning.", 14, MUTED)); return; }
         nightOffset = Math.max(-(valid.size() - 1), Math.min(0, nightOffset));
         Night n = valid.get(valid.size() - 1 + nightOffset);
         LinearLayout c = card(root);
@@ -476,7 +500,7 @@ public final class MainActivity extends Activity {
         BarChart dr = new BarChart(this); dr.set(drop, labels, BarChart.Mode.BARS, p).tones(tones).threshold(0.3, "").axis(this::chartTempSize);
         week.addView(dr, new LinearLayout.LayoutParams(-1, dp(120)));
         Button how = action("How sleep is estimated", false, R.drawable.ic_info);
-        how.setOnClickListener(v -> info("Sleep from temperature", "In bed: bedding warms the air around the patch, so the ZHF heater needs much less power. CeaSAR finds the longest low-power stretch between 6 PM and 2 PM (bridging breaks up to 25 min, at least 3 h). Without heater data it uses a core-temperature threshold.\n\nTemperature drop: the evening 2 h average minus the overnight low (30-minute smoothed). A larger drop usually goes with deeper, more consolidated sleep.\n\nSleep cycles: core temperature ripples with the 90-ish-minute NREM/REM cycle. CeaSAR detrends the night, runs an FFT (the same transform the Forge SoC runs in hardware), and finds the strongest period from 60 to 130 min. Experimental.\n\nThis is time in bed, not EEG-scored sleep."));
+        how.setOnClickListener(v -> info("Sleep from temperature", "In bed: bedding warms the air around the patch, so the ZHF heater needs much less power. CaeSAR finds the longest low-power stretch between 6 PM and 2 PM (bridging breaks up to 25 min, at least 3 h). Without heater data it uses a core-temperature threshold.\n\nTemperature drop: the evening 2 h average minus the overnight low (30-minute smoothed). A larger drop usually goes with deeper, more consolidated sleep.\n\nSleep cycles: core temperature ripples with the 90-ish-minute NREM/REM cycle. CaeSAR detrends the night, runs an FFT (the same transform the Forge SoC runs in hardware), and finds the strongest period from 60 to 130 min. Experimental.\n\nThis is time in bed, not EEG-scored sleep."));
         fullAction(week, how);
     }
     private String chartTempSize(double d) { return fahrenheit ? String.format(Locale.getDefault(), "%.1f°", d * 1.8) : String.format(Locale.getDefault(), "%.1f°", d); }
@@ -518,7 +542,7 @@ public final class MainActivity extends Activity {
         }
         CycleTracker t = a.cycle;
         if (t == null) {
-            c.addView(heading("Log your period to start", 20)); c.addView(label("Add the first day of your most recent period. CeaSAR finds the temperature shift from there.", 13, MUTED));
+            c.addView(heading("Log your period to start", 20)); c.addView(label("Add the first day of your most recent period. CaeSAR finds the temperature shift from there.", 13, MUTED));
         } else {
             CycleTracker.Cycle cur = t.current();
             LocalDate today = Instant.ofEpochMilli(a.now).atZone(zone()).toLocalDate();
@@ -553,7 +577,10 @@ public final class MainActivity extends Activity {
             if (confirmed != null) chart.threshold(confirmed.coverline, "coverline");
             c.addView(chart, new LinearLayout.LayoutParams(-1, dp(150)));
         }
-        Button log = action("Log period start", false, R.drawable.ic_edit); log.setOnClickListener(v -> logPeriod()); fullAction(c, log);
+        LinearLayout actions = row(c);
+        Button log = action("Log period", false, 0); log.setOnClickListener(v -> logPeriod()); rowItem(actions, log, false);
+        Button edit = action("Edit dates", false, 0); edit.setOnClickListener(v -> editPeriods()); rowItem(actions, edit, false);
+        Button off = action("Turn off", false, 0); off.setOnClickListener(v -> setCycle(false)); rowItem(actions, off, true);
         c.addView(label("Confirms ovulation after the fact with the three-over-six rule. Not for contraception or diagnosis.", 11, MUTED));
     }
     private double shiftSize(Analysis a, CycleTracker.Cycle c) {
@@ -592,7 +619,7 @@ public final class MainActivity extends Activity {
 
     // ---------- Device ----------
     private void buildDevice(LinearLayout root) {
-        LinearLayout c = card(root); c.addView(heading("Your CeaSAR wearable", 23));
+        LinearLayout c = card(root); c.addView(heading("Your CaeSAR wearable", 23));
         status = label(connectionMessage, 14, TEXT); c.addView(status);
         c.addView(label("Connect the wearable with a USB data cable. It streams 1 Hz readings and can upload its overnight buffer.", 13, MUTED));
         LinearLayout actions = row(c);
@@ -623,30 +650,68 @@ public final class MainActivity extends Activity {
 
     // ---------- settings ----------
     private void showSettings() {
-        dialog("Settings").setItems(new String[]{"Appearance", "Temperature units", cycleOn ? "Turn off cycle insights" : "Turn on cycle insights", "Log period start", "Heater calibration", "About CeaSAR", "Delete saved data"}, (d, which) -> {
+        dialog("Settings").setItems(new String[]{"Appearance", "Temperature units", cycleActive() ? "Turn off cycle insights" : "Turn on cycle insights", "Log period start", "Edit period dates", "Heater calibration", "About CaeSAR", "Delete saved data"}, (d, which) -> {
             if (which == 0) dialog("Appearance").setSingleChoiceItems(new String[]{"Dark mode", "Light mode"}, dark ? 0 : 1, (dd, w) -> { dark = w == 0; getPreferences(MODE_PRIVATE).edit().putBoolean("dark", dark).apply(); applyColors(); buildUi(); dd.dismiss(); }).setNegativeButton("Close", null).show();
             else if (which == 1) dialog("Temperature units").setSingleChoiceItems(new String[]{"Celsius (°C)", "Fahrenheit (°F)"}, fahrenheit ? 1 : 0, (dd, w) -> { fahrenheit = w == 1; getPreferences(MODE_PRIVATE).edit().putBoolean("fahrenheit", fahrenheit).apply(); buildUi(); dd.dismiss(); }).setNegativeButton("Close", null).show();
-            else if (which == 2) setCycle(!cycleOn);
+            else if (which == 2) setCycle(!cycleActive());
             else if (which == 3) logPeriod();
-            else if (which == 4) calibrate();
-            else if (which == 5) info("About CeaSAR", "CeaSAR is the wearable from Forge Silicon Design, Northeastern University's chip design organization. Its mixed-signal SoC pairs an on-die and a board temperature sensor through a 2:1 mux into a SAR ADC, with a pipelined FFT, a RISC-V core, and a zero-heat-flux heater.\n\nThis app keeps everything on your phone. No account, no Internet permission, no cloud backup. Insights are experimental wellness information, not medical advice.");
+            else if (which == 4) editPeriods();
+            else if (which == 5) calibrate();
+            else if (which == 6) about("CaeSAR is the wearable from Forge Silicon Design, Northeastern University's chip design organization. Its mixed-signal SoC pairs an on-die and a board temperature sensor through a 2:1 mux into a SAR ADC, with a pipelined FFT, a RISC-V core, and a zero-heat-flux heater.\n\nThis app keeps everything on your phone. No account, no Internet permission, no cloud backup. Insights are experimental wellness information, not medical advice.");
             else dialog("Delete saved data?").setMessage("This deletes recorded temperature history and logged periods from this phone. Settings stay.").setNegativeButton("Keep data", null)
                     .setPositiveButton("Delete", (dd, w) -> storage.execute(() -> { store.clear(); main.post(() -> { if (!destroyed) { realStarts = new ArrayList<>(); requestAnalysis(); } }); })).show();
         }).setNegativeButton("Close", null).show();
     }
-    /** The demo always shows cycle insights with its fictional profile; real data follows the setting. */
-    private boolean cycleActive() { return demo || cycleOn; }
-    private void setCycle(boolean on) { cycleOn = on; getPreferences(MODE_PRIVATE).edit().putBoolean("cycle", on).apply(); requestAnalysis(); }
+    /** The demo keeps its own cycle setting so trying it never changes the real one. */
+    private boolean cycleActive() { return demo ? demoCycle : cycleOn; }
+    private void setCycle(boolean on) {
+        if (demo) demoCycle = on;
+        else { cycleOn = on; getPreferences(MODE_PRIVATE).edit().putBoolean("cycle", on).apply(); }
+        Toast.makeText(this, on ? "Cycle insights on" : "Cycle insights off", Toast.LENGTH_SHORT).show();
+        requestAnalysis();
+    }
+    private List<LocalDate> periodStarts() { List<LocalDate> list = new ArrayList<>(new TreeSet<>(demo ? demoStarts : realStarts)); return list; }
     private void logPeriod() {
         LocalDate today = LocalDate.now(zone());
-        DatePickerDialog picker = new DatePickerDialog(this, dark ? android.R.style.Theme_Material_Dialog_Alert : android.R.style.Theme_Material_Light_Dialog_Alert, (v, y, m, d) -> {
-            LocalDate day = LocalDate.of(y, m + 1, d);
-            if (!demo && !cycleOn) setCycle(true);
-            if (demo) { demoStarts.add(day); requestAnalysis(); }
-            else storage.execute(() -> { store.logPeriod(day); main.post(() -> { if (!destroyed) requestAnalysis(); }); });
-        }, today.getYear(), today.getMonthValue() - 1, today.getDayOfMonth());
+        DatePickerDialog picker = new DatePickerDialog(this, dark ? R.style.DateDialog : R.style.DateDialog_Light, (v, y, m, d) -> checkPeriod(LocalDate.of(y, m + 1, d)),
+                today.getYear(), today.getMonthValue() - 1, today.getDayOfMonth());
         picker.getDatePicker().setMaxDate(System.currentTimeMillis());
         picker.setTitle(demo ? "First day of period (demo)" : "First day of period"); picker.show();
+    }
+    /** A start within two weeks of another is usually a mistap or spotting, so ask before splitting the cycle. */
+    private void checkPeriod(LocalDate day) {
+        LocalDate near = null;
+        for (LocalDate s : periodStarts()) if (Math.abs(java.time.temporal.ChronoUnit.DAYS.between(s, day)) < 14) near = s;
+        if (near == null) { savePeriod(day, null); return; }
+        if (near.equals(day)) { Toast.makeText(this, shortDay(day) + " is already logged", Toast.LENGTH_SHORT).show(); return; }
+        final LocalDate other = near;
+        long gap = Math.abs(java.time.temporal.ChronoUnit.DAYS.between(other, day));
+        dialog("Period logged " + gap + " days " + (other.isBefore(day) ? "earlier" : "later")).setMessage("You already logged " + day(other) + ". Two starts " + gap + " days apart make a " + gap + "-day cycle. Replace that date, or keep both?")
+                .setPositiveButton("Replace", (d, w) -> savePeriod(day, other)).setNeutralButton("Keep both", (d, w) -> savePeriod(day, null)).setNegativeButton("Cancel", null).show();
+    }
+    private void savePeriod(LocalDate day, LocalDate replace) {
+        boolean enable = !cycleActive();
+        if (enable) { if (demo) demoCycle = true; else { cycleOn = true; getPreferences(MODE_PRIVATE).edit().putBoolean("cycle", true).apply(); } }
+        String note = "Period start saved: " + day(day) + (enable ? " · cycle insights on" : "");
+        if (demo) { if (replace != null) demoStarts.remove(replace); demoStarts.add(day); requestAnalysis(); Toast.makeText(this, note, Toast.LENGTH_SHORT).show(); }
+        else storage.execute(() -> {
+            if (replace != null) store.removePeriod(replace);
+            store.logPeriod(day);
+            main.post(() -> { if (!destroyed) { requestAnalysis(); Toast.makeText(this, note, Toast.LENGTH_SHORT).show(); } });
+        });
+    }
+    private void editPeriods() {
+        List<LocalDate> starts = periodStarts(); Collections.reverse(starts);
+        if (starts.isEmpty()) { dialog("No period dates").setMessage("Log the first day of a period to start cycle insights.").setPositiveButton("Log period start", (d, w) -> logPeriod()).setNegativeButton("Close", null).show(); return; }
+        String[] names = new String[starts.size()];
+        for (int i = 0; i < names.length; i++) names[i] = day(starts.get(i)) + (i + 1 < names.length ? " · " + java.time.temporal.ChronoUnit.DAYS.between(starts.get(i + 1), starts.get(i)) + "-day cycle before" : "");
+        dialog(demo ? "Period dates (demo)" : "Period dates").setItems(names, (d, which) -> {
+            LocalDate day = starts.get(which);
+            dialog("Remove " + day(day) + "?").setMessage("Cycles are recalculated without this date.").setNegativeButton("Keep", null).setPositiveButton("Remove", (dd, w) -> {
+                if (demo) { demoStarts.remove(day); requestAnalysis(); }
+                else storage.execute(() -> { store.removePeriod(day); main.post(() -> { if (!destroyed) requestAnalysis(); }); });
+            }).show();
+        }).setPositiveButton("Add date", (d, w) -> logPeriod()).setNegativeButton("Close", null).show();
     }
     private void calibrate() {
         LinearLayout form = column(); form.setPadding(dp(24), dp(8), dp(24), dp(8));
@@ -664,7 +729,7 @@ public final class MainActivity extends Activity {
 
     // ---------- analysis ----------
     private void requestAnalysis() {
-        if (destroyed) return;
+        if (destroyed || (demo && demoData == null)) return;   // demo data is still generating
         final int request = ++analysisRequest;
         final boolean preview = demo; final boolean cycle = cycleActive(); final double r = rOut; final ZoneId z = zone();
         final List<LocalDate> starts = new ArrayList<>(demoStarts);
@@ -779,7 +844,7 @@ public final class MainActivity extends Activity {
             dialog("Choose your wearable").setItems(names, (d, which) -> request(devices.get(which))).show();
         }
     }
-    private String deviceName(UsbDevice device) { return String.format(Locale.US, "CeaSAR #%d · %04X:%04X", device.getDeviceId(), device.getVendorId(), device.getProductId()); }
+    private String deviceName(UsbDevice device) { return String.format(Locale.US, "CaeSAR #%d · %04X:%04X", device.getDeviceId(), device.getVendorId(), device.getProductId()); }
     private void request(UsbDevice device) {
         disconnect(); live.clear(); activeDevice = device; if (connectButton != null) connectButton.setText("Disconnect");
         if (usb.hasPermission(device)) open(device);
@@ -845,13 +910,21 @@ public final class MainActivity extends Activity {
             analysis = null; page = page == 4 ? 4 : 0; buildUi(); requestAnalysis(); return;
         }
         disconnect(); live.clear();
-        demo = true; source = "Synthetic ZHF data · no USB"; demoStartNanos = SystemClock.elapsedRealtimeNanos();
-        demoData = new DemoData(System.currentTimeMillis(), zone());
-        demoStarts.clear(); demoStarts.addAll(demoData.periodStarts);
+        demo = true; demoCycle = true; source = "Synthetic ZHF data · no USB"; demoStartNanos = SystemClock.elapsedRealtimeNanos();
         setStatus("Demo preview · simulated readings");
-        long nowNanos = SystemClock.elapsedRealtimeNanos(), wall = System.currentTimeMillis();
-        for (int s = 600; s > 0; s--) live.addLast(demoData.live(wall - s * 1000L, nowNanos - s * 1_000_000_000L, -1));
-        analysis = null; buildUi(); requestAnalysis(); main.post(simulate);
+        analysis = null; ++analysisRequest; buildUi();
+        // Nine weeks of synthetic minutes is too much work for the UI thread on slower phones.
+        final ZoneId z = zone(); final long started = demoStartNanos;
+        storage.execute(() -> {
+            DemoData data = new DemoData(System.currentTimeMillis(), z);
+            main.post(() -> {
+                if (destroyed || !demo || demoStartNanos != started) return;
+                demoData = data; demoStarts.clear(); demoStarts.addAll(data.periodStarts);
+                long nowNanos = SystemClock.elapsedRealtimeNanos(), wall = System.currentTimeMillis();
+                for (int s = 600; s > 0; s--) live.addLast(data.live(wall - s * 1000L, nowNanos - s * 1_000_000_000L, -1));
+                requestAnalysis(); main.post(simulate);
+            });
+        });
     }
 
     @Override protected void onStart() { super.onStart(); main.removeCallbacks(refresh); main.post(refresh); if (demo) { main.removeCallbacks(simulate); main.post(simulate); } }
