@@ -1,0 +1,3 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="22%">
+    <bitmap android:src="@drawable/forge_mark" android:gravity="center" android:filter="true" />
+</inset>
